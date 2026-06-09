@@ -1,0 +1,62 @@
+{
+  "name": "cypilot",
+  "displayName": "CyPilot",
+  "publisher": "bykosta",
+  "icon": "resources/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bykosta/cypilot"
+  },
+  "description": "Hybrid AI Assistant for Cypress QA Automation",
+  "version": "0.0.4",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "cypilot.start",
+        "title": "CyPilot: Start Server"
+      },
+      {
+        "command": "cypilot.applyFix",
+        "title": "CyPilot: Apply Fix"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "cypilot-sidebar-view",
+          "title": "CyPilot",
+          "icon": "resources/sidebar-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "cypilot-sidebar-view": [
+        {
+          "type": "webview",
+          "id": "cypilot.sidebar",
+          "name": "CyPilot Chat"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package --skip-license"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.18",
+    "@types/vscode": "^1.75.0",
+    "@vscode/vsce": "^3.0.0",
+    "typescript": "^4.9.4"
+  }
+}
