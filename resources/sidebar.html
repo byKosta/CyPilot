@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyPilot Dashboard</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, var(--vscode-button-background, #6366f1), var(--vscode-button-hoverBackground, #4f46e5));
+            --bg-dark: var(--vscode-sideBar-background, #0b0f19);
+            --card-bg: var(--vscode-editor-inactiveSelectionBackground, rgba(128, 128, 128, 0.08));
+            --card-border: var(--vscode-sideBar-border, rgba(128, 128, 128, 0.15));
+            --text-main: var(--vscode-sideBar-foreground, #f1f5f9);
+            --text-muted: var(--vscode-descriptionForeground, #94a3b8);
+            
+            --color-error: #ef4444;
+            --color-error-bg: rgba(239, 68, 68, 0.1);
+            --color-success: #10b981;
+            --color-success-bg: rgba(16, 185, 129, 0.1);
+            --color-warning: #f59e0b;
+            --color-warning-bg: rgba(245, 158, 11, 0.1);
+            
+            --font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-family);
+            margin: 0;
+            padding: 12px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .logo-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-group h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 0;
+            background: linear-gradient(120deg, var(--vscode-button-background, #818cf8), var(--vscode-button-hoverBackground, #6366f1));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .server-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--color-success);
+            background: var(--color-success-bg);
+            padding: 4px 8px;
+            border-radius: 12px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--color-success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 0.6; }
+            50% { transform: scale(1.25); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.6; }
+        }
+
+        /* Utility buttons */
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+        }
+
+        .text-btn {
+            background: none;
+            border: none;
+            color: var(--vscode-textLink-foreground, #6366f1);
+            cursor: pointer;
+            padding: 2px 4px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .text-btn:hover {
+            text-decoration: underline;
+            color: var(--vscode-textLink-activeForeground, #4f46e5);
+        }
+
+        /* Welcome State */
+        .welcome-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 16px;
+            border: 1px dashed var(--card-border);
+            border-radius: 12px;
+            background: var(--card-bg);
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .welcome-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 0;
+            color: var(--text-main);
+        }
+
+        .step-card {
+            display: flex;
+            gap: 12px;
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+
+        .step-num {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            color: white;
+            font-weight: 700;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .step-content h4 {
+            margin: 0;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .step-content p {
+            margin: 0;
+            color: var(--text-muted);
+        }
+
+        /* Main Timeline List */
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .timeline-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .card-header {
+            padding: 10px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .card-header:hover {
+            background: rgba(128, 128, 128, 0.05);
+        }
+
+        .card-title-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            overflow: hidden;
+            width: 75%;
+        }
+
+        .card-type-badge {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            align-self: flex-start;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .badge-fail {
+            color: var(--color-error);
+            background: var(--color-error-bg);
+        }
+
+        .badge-network {
+            color: var(--color-warning);
+            background: var(--color-warning-bg);
+        }
+
+        .card-spec-name {
+            font-size: 0.8rem;
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .card-meta {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        /* Expanded Details */
+        .card-details {
+            padding: 12px;
+            border-top: 1px solid var(--card-border);
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .card-details.active {
+            display: flex;
+        }
+
+        .info-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .info-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.04em;
+        }
+
+        .info-val {
+            font-size: 0.8rem;
+            word-break: break-all;
+        }
+
+        .error-msg-box {
+            background: var(--color-error-bg);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            padding: 8px 10px;
+            border-radius: 6px;
+            color: #fca5a5;
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+
+        /* AI Analysis Card */
+        .ai-analysis-card {
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            background: rgba(99, 102, 241, 0.05);
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .ai-title-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #a5b4fc;
+        }
+
+        .ai-explanation {
+            font-size: 0.78rem;
+            line-height: 1.4;
+            color: var(--text-main);
+        }
+
+        .code-container {
+            display: flex;
+            flex-direction: column;
+            border-radius: 6px;
+            border: 1px solid var(--card-border);
+            overflow: hidden;
+        }
+
+        .code-header {
+            background: rgba(128, 128, 128, 0.1);
+            padding: 4px 8px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .code-block {
+            margin: 0;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.2);
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: #8ce8ff;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+
+        /* Action Buttons */
+        .btn {
+            background: var(--vscode-button-background, #6366f1);
+            color: var(--vscode-button-foreground, #ffffff);
+            border: none;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: opacity 0.2s ease;
+        }
+
+        .btn:hover {
+            background: var(--vscode-button-hoverBackground, #4f46e5);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--vscode-button-background, #6366f1);
+            color: var(--vscode-button-background, #6366f1);
+        }
+
+        .btn-outline:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 0.7rem;
+            border-radius: 4px;
+        }
+
+        /* Selector suggestion options */
+        .selector-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 8px;
+            background: rgba(128, 128, 128, 0.05);
+            border: 1px solid var(--card-border);
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            gap: 6px;
+        }
+
+        .selector-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #a7f3d0;
+        }
+
+        .selector-actions {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        /* Details collapsible */
+        details {
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
+            padding: 6px;
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        summary {
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .details-content {
+            margin-top: 8px;
+            max-height: 150px;
+            overflow-y: auto;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            white-space: pre-wrap;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* LLM AI Brain Styles */
+        .llm-thinking {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-top: 8px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.08));
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .llm-thinking .thinking-dots {
+            display: flex;
+            gap: 3px;
+        }
+
+        .llm-thinking .thinking-dots span {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: #8b5cf6;
+            animation: dotPulse 1.4s ease-in-out infinite;
+        }
+
+        .llm-thinking .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .llm-thinking .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes dotPulse {
+            0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+            40% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .llm-thinking-text {
+            font-size: 0.72rem;
+            color: #a78bfa;
+            font-weight: 500;
+        }
+
+        .llm-analysis-card {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.06), rgba(59, 130, 246, 0.06));
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 8px;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .llm-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .llm-title-row .title-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .provider-badge {
+            font-size: 0.6rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .provider-badge.gemini { background: rgba(66, 133, 244, 0.15); color: #60a5fa; }
+        .provider-badge.ollama { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+        .provider-badge.custom { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+
+        .prevention-tip {
+            font-size: 0.72rem;
+            padding: 8px 10px;
+            margin-top: 8px;
+            border-radius: 6px;
+            background: rgba(16, 185, 129, 0.06);
+            border-left: 3px solid var(--color-success);
+            color: var(--text-muted);
+        }
+
+        .prevention-tip strong { color: #34d399; }
+
+        .reanalyze-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.68rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            background: transparent;
+            color: #a78bfa;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .reanalyze-btn:hover {
+            background: rgba(139, 92, 246, 0.15);
+            border-color: rgba(139, 92, 246, 0.5);
+        }
+
+        .source-divider {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 10px 0 6px;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .source-divider::before, .source-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--card-border);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-group">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L2 22h20L12 2z" fill="currentColor"/>
+            </svg>
+            <h1>CyPilot</h1>
+        </div>
+        <div class="server-status">
+            <div class="status-dot"></div>
+            <span>Listening</span>
+        </div>
+    </header>
+
+    <div class="header-actions">
+        <button class="text-btn" id="clear-btn">🧹 Clear History</button>
+        <button class="text-btn" id="config-btn">⚙️ Configure Spy</button>
+    </div>
+
+    <!-- Main View Container -->
+    <div id="content-container">
+        <!-- Welcoming Guide / Empty State -->
+        <div class="welcome-panel" id="welcome-panel" style="display: none;">
+            <h3 class="welcome-title">Getting Started with CyPilot 🛸</h3>
+            
+            <div class="step-card">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                    <h4>Auto-Inject Spy Plugin</h4>
+                    <p>Setup CyPilot spy in your Cypress support files instantly.</p>
+                    <button class="btn btn-sm" id="auto-setup-btn" style="margin-top: 4px;">✨ Setup Integration</button>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                    <h4>Run Cypress Tests</h4>
+                    <p>Launch your tests. Failures and network actions stream directly here.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline container -->
+        <div class="timeline" id="timeline"></div>
+    </div>
+
+    <script>
+        const vscode = acquireVsCodeApi();
+
+        // Notify extension we're ready
+        vscode.postMessage({ type: 'webviewReady' });
+
+        // Setup Header Event Listeners
+        document.getElementById('clear-btn').addEventListener('click', () => {
+            vscode.postMessage({ type: 'clearHistory' });
+        });
+
+        document.getElementById('config-btn').addEventListener('click', () => {
+            vscode.postMessage({ type: 'setupIntegration' });
+        });
+
+        document.getElementById('auto-setup-btn').addEventListener('click', () => {
+            vscode.postMessage({ type: 'setupIntegration' });
+        });
+
+        // Listen for messages from sidebarProvider
+        window.addEventListener('message', event => {
+            const message = event.data;
+
+            if (message.command === 'updateHistory') {
+                renderTimeline(message.history);
+            }
+        });
+
+        function renderTimeline(history) {
+            const welcomePanel = document.getElementById('welcome-panel');
+            const timeline = document.getElementById('timeline');
+            
+            timeline.innerHTML = '';
+
+            if (!history || history.length === 0) {
+                welcomePanel.style.display = 'flex';
+                return;
+            }
+
+            welcomePanel.style.display = 'none';
+
+            history.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'timeline-card';
+
+                const isFail = item.payload.type === 'test_failure';
+                const badgeText = isFail ? 'Failure' : 'Network';
+                const badgeClass = isFail ? 'badge-fail' : 'badge-network';
+                
+                const time = new Date(item.payload.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                
+                let title = '';
+                let metaVal = '';
+
+                if (isFail) {
+                    title = item.payload.specName.split('/').pop() || 'test';
+                    metaVal = 'Cypress Fail';
+                } else {
+                    title = `${item.payload.method} - ${item.payload.statusCode}`;
+                    const urlPath = item.payload.url.split('/').pop() || '';
+                    metaVal = urlPath.length > 15 ? '...' + urlPath.substring(urlPath.length - 12) : urlPath;
+                }
+
+                card.innerHTML = `
+                    <div class="card-header" data-id="${item.id}">
+                        <div class="card-title-group">
+                            <span class="card-type-badge ${badgeClass}">${badgeText}</span>
+                            <span class="card-spec-name">${title}</span>
+                        </div>
+                        <div class="card-meta">
+                            <div>${time}</div>
+                            <div style="font-size: 0.65rem; margin-top: 2px;">${metaVal}</div>
+                        </div>
+                    </div>
+                    <div class="card-details" id="details-${item.id}">
+                        <!-- Content injected below -->
+                    </div>
+                `;
+
+                // Add Toggle Event Listener
+                const header = card.querySelector('.card-header');
+                header.addEventListener('click', () => {
+                    toggleDetails(item.id);
+                });
+
+                timeline.appendChild(card);
+            });
+        }
+
+        let currentlyOpenId = null;
+
+        function toggleDetails(id) {
+            const allDetails = document.querySelectorAll('.card-details');
+            const targetDetails = document.getElementById(`details-${id}`);
+            const isActive = targetDetails.classList.contains('active');
+
+            // Close all
+            allDetails.forEach(el => el.classList.remove('active'));
+
+            if (!isActive) {
+                targetDetails.classList.add('active');
+                currentlyOpenId = id;
+                // Fetch the item data and render the full details inside the container
+                loadDetailsContent(id);
+            } else {
+                currentlyOpenId = null;
+            }
+        }
+
+        function loadDetailsContent(id) {
+            // Retrieve item data by requesting or getting from last state
+            const item = window.lastHistoryItems.find(i => i.id === id);
+            if (!item) return;
+
+            const container = document.getElementById(`details-${id}`);
+            const isFail = item.payload.type === 'test_failure';
+
+            let content = '';
+
+            if (isFail) {
+                const payload = item.payload;
+                const analysis = item.analysis;
+
+                content = `
+                    <div class="info-row">
+                        <span class="info-label">Spec File</span>
+                        <span class="info-val">${payload.specName}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">URL</span>
+                        <a href="${payload.url}" class="info-val" style="color: var(--vscode-textLink-foreground); text-decoration: none;">${payload.url}</a>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Error Message</span>
+                        <div class="error-msg-box">${payload.message}</div>
+                    </div>
+                `;
+
+                if (payload.stack) {
+                    content += `
+                        <details>
+                            <summary>Stack Trace</summary>
+                            <div class="details-content">${payload.stack}</div>
+                        </details>
+                    `;
+                }
+
+                // ─── Rule Engine Analysis (always shown) ───
+                if (analysis) {
+                    content += `
+                        <div class="source-divider">🛸 Rule Engine</div>
+                        <div class="ai-analysis-card">
+                            <div class="ai-title-row">
+                                <span>🛸</span>
+                                <span>CyPilot Analysis</span>
+                            </div>
+                            <div class="ai-explanation">
+                                ${analysis.explanation}
+                            </div>
+                            
+                            <div class="code-container">
+                                <div class="code-header">
+                                    <span>PROPOSED FIX</span>
+                                    <span>js</span>
+                                </div>
+                                <pre class="code-block" id="fix-code-${item.id}">${analysis.proposedFix}</pre>
+                            </div>
+                            
+                            <button class="btn btn-sm apply-fix-btn" data-code-id="fix-code-${item.id}">
+                                <span>✨ Apply Fix</span>
+                            </button>
+                        </div>
+                    `;
+
+                    if (analysis.alternatives && analysis.alternatives.length > 0) {
+                        content += `
+                            <div class="info-row">
+                                <span class="info-label">Selector Alternatives</span>
+                                <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;">
+                                    ${analysis.alternatives.map((alt, idx) => `
+                                        <div class="selector-option">
+                                            <span class="selector-text">${alt}</span>
+                                            <div class="selector-actions">
+                                                <button class="btn btn-outline btn-sm apply-alt-btn" data-code="${alt}">Apply</button>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+
+                // ─── LLM AI Brain Section (async overlay) ───
+                const llmStatus = item.llmStatus || 'none';
+                const llmAnalysis = item.llmAnalysis;
+
+                if (llmStatus === 'pending') {
+                    content += `
+                        <div class="source-divider">🧠 AI Brain</div>
+                        <div class="llm-thinking">
+                            <div class="thinking-dots"><span></span><span></span><span></span></div>
+                            <span class="llm-thinking-text">CyPilot AI is analyzing...</span>
+                        </div>
+                    `;
+                } else if (llmStatus === 'done' && llmAnalysis) {
+                    const providerClass = llmAnalysis.source || 'custom';
+                    const providerLabel = llmAnalysis.source === 'gemini' ? 'Gemini' : llmAnalysis.source === 'ollama' ? 'Ollama' : 'AI';
+
+                    content += `
+                        <div class="source-divider">🧠 AI Brain</div>
+                        <div class="llm-analysis-card">
+                            <div class="llm-title-row">
+                                <div class="title-left">
+                                    <span>🧠</span>
+                                    <span>Deep AI Analysis</span>
+                                </div>
+                                <span class="provider-badge ${providerClass}">${providerLabel}</span>
+                            </div>
+                            <div class="ai-explanation">${llmAnalysis.explanation}</div>
+                            
+                            <div class="code-container">
+                                <div class="code-header">
+                                    <span>AI PROPOSED FIX</span>
+                                    <span>js</span>
+                                </div>
+                                <pre class="code-block" id="llm-fix-code-${item.id}">${llmAnalysis.proposedFix}</pre>
+                            </div>
+
+                            <button class="btn btn-sm apply-fix-btn" data-code-id="llm-fix-code-${item.id}">
+                                <span>🧠 Apply AI Fix</span>
+                            </button>
+                    `;
+
+                    if (llmAnalysis.alternatives && llmAnalysis.alternatives.length > 0) {
+                        content += `
+                            <div class="info-row" style="margin-top: 8px;">
+                                <span class="info-label">AI Selector Suggestions</span>
+                                <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;">
+                                    ${llmAnalysis.alternatives.map(alt => `
+                                        <div class="selector-option">
+                                            <span class="selector-text">${alt}</span>
+                                            <div class="selector-actions">
+                                                <button class="btn btn-outline btn-sm apply-alt-btn" data-code="${alt}">Apply</button>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    if (llmAnalysis.preventionTip) {
+                        content += `
+                            <div class="prevention-tip">
+                                <strong>💡 Prevention Tip:</strong> ${llmAnalysis.preventionTip}
+                            </div>
+                        `;
+                    }
+
+                    content += `</div>`; // close llm-analysis-card
+                } else if (llmStatus === 'error') {
+                    content += `
+                        <div class="source-divider">🧠 AI Brain</div>
+                        <div style="display: flex; align-items: center; gap: 6px; margin-top: 4px;">
+                            <span style="font-size: 0.72rem; color: var(--text-muted);">AI analysis unavailable</span>
+                            <button class="reanalyze-btn" data-id="${item.id}">🔄 Retry</button>
+                        </div>
+                    `;
+                }
+
+                // Re-analyze and Generate Test buttons
+                content += `
+                    <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;">
+                        <button class="reanalyze-btn" data-id="${item.id}">🔄 Re-analyze with AI</button>
+                        <button class="btn btn-outline btn-sm gen-test-btn" data-id="${item.id}">
+                            📝 Generate Test
+                        </button>
+                    </div>
+                `;
+
+            } else {
+                // Network intercept
+                const payload = item.payload;
+                content = `
+                    <div class="info-row">
+                        <span class="info-label">HTTP Method & Status</span>
+                        <span class="info-val" style="color: ${payload.statusCode >= 400 ? 'var(--color-error)' : 'var(--color-success)'}; font-weight: 700;">
+                            ${payload.method} - ${payload.statusCode}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Request URL</span>
+                        <span class="info-val">${payload.url}</span>
+                    </div>
+                `;
+
+                if (payload.requestBody) {
+                    content += `
+                        <details>
+                            <summary>Request Body</summary>
+                            <div class="details-content">${typeof payload.requestBody === 'object' ? JSON.stringify(payload.requestBody, null, 2) : payload.requestBody}</div>
+                        </details>
+                    `;
+                }
+
+                if (payload.responseBody) {
+                    content += `
+                        <details open>
+                            <summary>Response Body</summary>
+                            <div class="details-content">${typeof payload.responseBody === 'object' ? JSON.stringify(payload.responseBody, null, 2) : payload.responseBody}</div>
+                        </details>
+                    `;
+                }
+            }
+
+            container.innerHTML = content;
+
+            // Bind Apply Fix Button
+            const fixBtn = container.querySelector('.apply-fix-btn');
+            if (fixBtn) {
+                fixBtn.addEventListener('click', () => {
+                    const codeId = fixBtn.getAttribute('data-code-id');
+                    const code = document.getElementById(codeId).innerText;
+                    vscode.postMessage({
+                        type: 'applyFix',
+                        code: code
+                    });
+                });
+            }
+
+            // Bind Apply Selector Alternatives Buttons
+            const altBtns = container.querySelectorAll('.apply-alt-btn');
+            altBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const code = btn.getAttribute('data-code');
+                    vscode.postMessage({
+                        type: 'applyFix',
+                        code: code
+                    });
+                });
+            });
+
+            // Bind Generate Test Button
+            const genBtn = container.querySelector('.gen-test-btn');
+            if (genBtn) {
+                genBtn.addEventListener('click', () => {
+                    vscode.postMessage({
+                        type: 'generateTest',
+                        errorId: id
+                    });
+                });
+            }
+
+            // Bind Re-analyze with AI buttons
+            const reanalyzeBtns = container.querySelectorAll('.reanalyze-btn');
+            reanalyzeBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    vscode.postMessage({
+                        type: 'reanalyze',
+                        errorId: btn.getAttribute('data-id')
+                    });
+                });
+            });
+        }
+
+        // Cache last received history items locally
+        window.addEventListener('message', event => {
+            if (event.data.command === 'updateHistory') {
+                window.lastHistoryItems = event.data.history;
+                // If there's an active details card open, reload its contents
+                if (currentlyOpenId) {
+                    const stillExists = window.lastHistoryItems.some(i => i.id === currentlyOpenId);
+                    if (stillExists) {
+                        loadDetailsContent(currentlyOpenId);
+                    } else {
+                        currentlyOpenId = null;
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,31 +1,112 @@
 {
   "name": "cypilot",
-  "displayName": "CyPilot",
+  "displayName": "CyPilot — Hybrid AI Cypress QA Assistant",
+  "description": "Next-generation Hybrid AI Assistant for Cypress. Intercepts errors and DOM snapshots in real time to suggest and apply 1-click fixes in VS Code using local Ollama or Gemini (Free).",
+  "version": "0.0.5",
   "publisher": "bykosta",
   "icon": "resources/icon.png",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/bykosta/cypilot"
   },
-  "description": "Hybrid AI Assistant for Cypress QA Automation",
-  "version": "0.0.4",
   "engines": {
     "vscode": "^1.75.0"
   },
   "categories": [
-    "Other"
+    "Testing",
+    "Machine Learning"
   ],
-  "activationEvents": [],
+  "keywords": [
+    "cypress",
+    "testing",
+    "QA",
+    "automation",
+    "AI",
+    "e2e",
+    "debug",
+    "test",
+    "selector",
+    "fix"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "CyPilot",
+      "properties": {
+        "cypilot.serverPort": {
+          "type": "number",
+          "default": 3000,
+          "description": "Port on which the CyPilot local HTTP server runs."
+        },
+        "cypilot.autoStartServer": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically start the CyPilot server when VS Code opens."
+        },
+        "cypilot.aiProvider": {
+          "type": "string",
+          "default": "none",
+          "enum": ["none", "gemini", "ollama", "custom"],
+          "enumDescriptions": [
+            "Rule-engine only (no API key needed, works instantly)",
+            "Google Gemini Flash (free API key from aistudio.google.com)",
+            "Ollama local LLM (100% private, runs on your machine)",
+            "Custom OpenAI-compatible API (BYO key)"
+          ],
+          "description": "AI provider for deep error analysis. Rule-engine always works as a fallback regardless of this setting."
+        },
+        "cypilot.geminiApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Your free Google Gemini API key. Get one at https://aistudio.google.com/ → Get API key."
+        },
+        "cypilot.ollamaHost": {
+          "type": "string",
+          "default": "http://localhost:11434",
+          "description": "Ollama server address (default: http://localhost:11434)."
+        },
+        "cypilot.ollamaModel": {
+          "type": "string",
+          "default": "qwen3:8b",
+          "description": "Ollama model name to use for analysis (e.g., qwen3:8b, llama3, codellama)."
+        },
+        "cypilot.customApiUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Custom OpenAI-compatible API endpoint URL (e.g., https://api.groq.com/openai/v1/chat/completions)."
+        },
+        "cypilot.customApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for your custom OpenAI-compatible provider."
+        },
+        "cypilot.customModel": {
+          "type": "string",
+          "default": "",
+          "description": "Model name for your custom provider (e.g., llama-3.3-70b-versatile)."
+        }
+      }
+    },
     "commands": [
       {
         "command": "cypilot.start",
         "title": "CyPilot: Start Server"
       },
       {
-        "command": "cypilot.applyFix",
-        "title": "CyPilot: Apply Fix"
+        "command": "cypilot.stop",
+        "title": "CyPilot: Stop Server"
+      },
+      {
+        "command": "cypilot.setup",
+        "title": "CyPilot: Setup Cypress Integration"
+      },
+      {
+        "command": "cypilot.clearHistory",
+        "title": "CyPilot: Clear History"
       }
     ],
     "viewsContainers": {
@@ -45,18 +126,24 @@
           "name": "CyPilot Chat"
         }
       ]
-    }
+    },
+    "keybindings": [
+      {
+        "command": "cypilot.setup",
+        "key": "ctrl+shift+i",
+        "mac": "cmd+shift+i",
+        "when": "editorTextFocus"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "package": "vsce package --skip-license"
+    "watch": "tsc -watch -p ./"
   },
   "devDependencies": {
     "@types/node": "^18.11.18",
     "@types/vscode": "^1.75.0",
-    "@vscode/vsce": "^3.0.0",
     "typescript": "^4.9.4"
   }
 }
