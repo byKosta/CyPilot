@@ -2,7 +2,7 @@
   "name": "cypilot",
   "displayName": "CyPilot — Hybrid AI Cypress QA Assistant",
   "description": "Next-generation Hybrid AI Assistant for Cypress. Intercepts errors and DOM snapshots in real time to suggest and apply 1-click fixes in VS Code using local Ollama or Gemini (Free).",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "publisher": "bykosta",
   "icon": "resources/icon.png",
   "license": "MIT",
